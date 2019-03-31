@@ -43,7 +43,8 @@ export default class CssColorExtractPlugin {
 						const boot = async () => {
 							const pscc = await postcss([
 								require('postcss-modules')({
-									generateScopedName: currentTemp.localIdentName
+									generateScopedName: currentTemp.localIdentName,
+									getJSON: () => {}
 								})
 							]).process(currentTemp.source, { from: currentTemp.resourcePath });
 							return pscc.css;
