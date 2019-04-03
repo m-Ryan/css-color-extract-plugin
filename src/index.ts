@@ -40,7 +40,7 @@ export default class CssColorExtractPlugin {
 					} else {
 						cacheDatas.push({
 							source: cssData,
-							fileName: data.fileName,
+							fileName: data.fileName.replace(/(.*)\\(.*)/, '$2'), // 只要文件名
 							matchColors: data.matchColors
 						});
 					}

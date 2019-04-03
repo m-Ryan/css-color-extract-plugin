@@ -17,10 +17,11 @@ const postcss_1 = __importDefault(require("postcss"));
 const index_1 = require("./index");
 function pitch(source) {
     const options = loader_utils_1.default.getOptions(this);
+    if (typeof options.only === 'undefined')
+        options.only = true;
     if (!(Array.isArray(options.colors) && options.colors.every((item) => typeof item === 'string'))) {
         throw new Error('colors 需要是一个数组');
     }
-    const context = this.context;
     const resourcePath = this.resourcePath;
     if (options.modules && !options.localIdentName) {
         throw new Error('css modules 必须提供 localIdentName');
@@ -71,7 +72,6 @@ function pitch(source) {
     childCompiler.hooks.thisCompilation.tap(`${index_1.PLUGIN_NAME} loader`, (compilation) => {
         compilation.hooks.normalModuleLoader.tap(`${index_1.PLUGIN_NAME} loader`, (loaderContext, module) => {
             loaderContext.emitFile = this.emitFile;
-            loaderContext[index_1.PLUGIN_CALLBACK] = false;
         });
     });
     const callback = this.async();
@@ -90,15 +90,16 @@ function pitch(source) {
         const getCss = () => __awaiter(this, void 0, void 0, function* () {
             if (!options.modules)
                 return css_1.default.stringify(parseCssObject);
+            const cssSource = options.only ? css_1.default.stringify(parseCssObject) : source;
             const pscc = yield postcss_1.default([
                 require('postcss-modules')({
                     generateScopedName: options.localIdentName,
                     getJSON: () => { }
                 })
-            ]).process(css_1.default.stringify(parseCssObject), { from: resourcePath });
+            ]).process(cssSource, { from: resourcePath });
             return pscc.css;
         });
-        let callbackSource = options.only ? yield getCss() : source;
+        let callbackSource = yield getCss();
         this[index_1.PLUGIN_CALLBACK]({
             source: callbackSource,
             fileName: resourcePath,

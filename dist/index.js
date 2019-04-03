@@ -44,7 +44,7 @@ class CssColorExtractPlugin {
                     else {
                         cacheDatas.push({
                             source: cssData,
-                            fileName: data.fileName,
+                            fileName: data.fileName.replace(/(.*)\\(.*)/, '$2'),
                             matchColors: data.matchColors
                         });
                     }

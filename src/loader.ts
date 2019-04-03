@@ -5,10 +5,11 @@ import { PLUGIN_NAME, PLUGIN_CALLBACK } from './index';
 
 export default function pitch(source: string) {
 	const options = loaderUtils.getOptions(this) as IcssOptions;
+	if (typeof options.only === 'undefined') options.only = true;
 	if (!(Array.isArray(options.colors) && options.colors.every((item) => typeof item === 'string'))) {
 		throw new Error('colors 需要是一个数组');
 	}
-	const context = this.context;
+
 	const resourcePath = this.resourcePath;
 	if (options.modules && !options.localIdentName) {
 		throw new Error('css modules 必须提供 localIdentName');
@@ -67,7 +68,6 @@ export default function pitch(source: string) {
 	childCompiler.hooks.thisCompilation.tap(`${PLUGIN_NAME} loader`, (compilation) => {
 		compilation.hooks.normalModuleLoader.tap(`${PLUGIN_NAME} loader`, (loaderContext, module) => {
 			loaderContext.emitFile = this.emitFile;
-			loaderContext[PLUGIN_CALLBACK] = false;
 		});
 	});
 
@@ -87,16 +87,17 @@ export default function pitch(source: string) {
 
 		const getCss = async () => {
 			if (!options.modules) return css.stringify(parseCssObject);
+			const cssSource = options.only ? css.stringify(parseCssObject) : source;
 			const pscc = await postcss([
 				require('postcss-modules')({
 					generateScopedName: options.localIdentName,
 					getJSON: () => {}
 				})
-			]).process(css.stringify(parseCssObject), { from: resourcePath });
+			]).process(cssSource, { from: resourcePath });
 			return pscc.css;
 		};
 
-		let callbackSource = options.only ? await getCss() : source;
+		let callbackSource = await getCss();
 
 		(this[PLUGIN_CALLBACK] as (cssItem: IcssItem) => any)({
 			source: callbackSource,
