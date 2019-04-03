@@ -7,7 +7,8 @@ export interface IcssOptions {
 }
 export interface IcssItem {
     source: string;
-    resourcePath: string;
+    fileName: string;
     modules: boolean;
     localIdentName?: string;
+    matchColors: string[];
 }

@@ -12,13 +12,11 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const html_webpack_plugin_1 = __importDefault(require("html-webpack-plugin"));
-const postcss_1 = __importDefault(require("postcss"));
 exports.PLUGIN_CALLBACK = 'css-color-extract-plugin-callback';
 exports.PLUGIN_NAME = 'css-color-extract-plugin';
 class CssColorExtractPlugin {
-    constructor(options) {
+    constructor(options = {}) {
         this.cacheDatas = [];
-        this.tempData = [];
         this.jsFileName = '';
         this.variableName = '';
         Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN' });
@@ -29,43 +27,29 @@ class CssColorExtractPlugin {
     }
     apply(compiler) {
         const cacheDatas = this.cacheDatas;
-        const tempData = this.tempData;
         compiler.hooks.thisCompilation.tap(exports.PLUGIN_NAME, (compilation) => {
             compilation.hooks.normalModuleLoader.tap(exports.PLUGIN_NAME, (lc, m) => {
                 const loaderContext = lc;
-                this.emitFile = loaderContext.emitFile;
+                if (!this.emitFile) {
+                    this.emitFile = loaderContext.emitFile;
+                }
                 loaderContext[exports.PLUGIN_CALLBACK] = (data) => __awaiter(this, void 0, void 0, function* () {
-                    const currentData = tempData.filter((item) => item.resourcePath === data.resourcePath)[0];
+                    if (!data.source)
+                        return;
+                    const cssData = data.source.replace(/\n/g, '');
+                    const currentData = cacheDatas.filter((item) => item.fileName === data.fileName)[0];
                     if (currentData) {
-                        currentData.source = data.source;
+                        currentData.source = cssData;
                     }
                     else {
-                        tempData.push(data);
-                    }
-                    while (tempData.length > 0) {
-                        const currentTemp = tempData.pop();
-                        const boot = () => __awaiter(this, void 0, void 0, function* () {
-                            const pscc = yield postcss_1.default([
-                                require('postcss-modules')({
-                                    generateScopedName: currentTemp.localIdentName
-                                })
-                            ]).process(currentTemp.source, { from: currentTemp.resourcePath });
-                            return pscc.css;
+                        cacheDatas.push({
+                            source: cssData,
+                            fileName: data.fileName,
+                            matchColors: data.matchColors
                         });
-                        const cssData = currentTemp.modules ? yield boot() : currentTemp.source;
-                        const currentData = cacheDatas.filter((item) => item.resourcePath === currentTemp.resourcePath)[0];
-                        if (currentData) {
-                            currentData.data = cssData;
-                        }
-                        else {
-                            cacheDatas.push({
-                                data: cssData,
-                                resourcePath: currentTemp.resourcePath
-                            });
-                        }
-                        if (this.jsFileName) {
-                            this.emitFile(this.jsFileName, this.getJSContent());
-                        }
+                    }
+                    if (this.jsFileName) {
+                        this.emitFile(this.jsFileName, this.getJSContent());
                     }
                 });
             });

@@ -3,7 +3,6 @@ export declare const PLUGIN_CALLBACK = "css-color-extract-plugin-callback";
 export declare const PLUGIN_NAME = "css-color-extract-plugin";
 export default class CssColorExtractPlugin {
     private cacheDatas;
-    private tempData;
     private emitFile;
     private jsFileName;
     private variableName;
@@ -13,7 +12,7 @@ export default class CssColorExtractPlugin {
     getJSContent(): string;
 }
 interface IOptions {
-    fileName: string;
-    variableName: string;
+    fileName?: string;
+    variableName?: string;
 }
 export {};

@@ -1,52 +1,67 @@
 import css from 'css';
 import loaderUtils from 'loader-utils';
+import postcss from 'postcss';
 import { PLUGIN_NAME, PLUGIN_CALLBACK } from './index';
 
 export default function pitch(source: string) {
 	const options = loaderUtils.getOptions(this) as IcssOptions;
+	if (!(Array.isArray(options.colors) && options.colors.every((item) => typeof item === 'string'))) {
+		throw new Error('colors 需要是一个数组');
+	}
 	const context = this.context;
 	const resourcePath = this.resourcePath;
 	if (options.modules && !options.localIdentName) {
 		throw new Error('css modules 必须提供 localIdentName');
 	}
 	this.addDependency(this.resourcePath);
-
+	const matchColors = [];
 	const parseCssObject = css.parse(source);
-	parseCssObject.stylesheet.rules.forEach((rule, index) => {
-		if (rule.type === 'rule') {
-			const currentRule = rule as css.Rule;
+	parseCssObject.stylesheet.rules = parseCssObject.stylesheet.rules
+		.map((rule, index) => {
+			if (rule.type === 'rule') {
+				const currentRule = rule as css.Rule;
 
-			currentRule.declarations = currentRule.declarations.filter(
-				(declaration: css.Declaration) =>
-					declaration.type === 'declaration' && getIsTheme(declaration.value, options.colors)
-			);
-		} else if (rule.type === 'keyframes') {
-			(rule as css.KeyFrames).keyframes = (rule as css.KeyFrames).keyframes.filter((item) => {
-				if (item.type === 'keyframe') {
-					let keyframe = item as css.KeyFrame;
+				currentRule.declarations = currentRule.declarations.filter(
+					(declaration: css.Declaration) =>
+						declaration.type === 'declaration' && getIsTheme(declaration.value, options.colors, matchColors)
+				);
+				if (currentRule.declarations.length === 0) rule = null;
+			} else if (rule.type === 'keyframes') {
+				(rule as css.KeyFrames).keyframes = (rule as css.KeyFrames).keyframes.filter((item) => {
+					if (item.type === 'keyframe') {
+						let keyframe = item as css.KeyFrame;
 
-					keyframe.declarations = keyframe.declarations.filter(
-						(declaration: css.Declaration) =>
-							declaration.type === 'declaration' && getIsTheme(declaration.value, options.colors)
-					);
-					return keyframe.declarations.length > 0;
-				}
-				return false;
-			});
-		} else if (rule.type === 'media') {
-			(rule as css.Media).rules = (rule as css.Media).rules.filter((rule) => {
-				if (rule.type === 'rule') {
-					const currentRule = rule as css.Rule;
+						keyframe.declarations = keyframe.declarations.filter(
+							(declaration: css.Declaration) =>
+								declaration.type === 'declaration' &&
+								getIsTheme(declaration.value, options.colors, matchColors)
+						);
+						return keyframe.declarations.length > 0;
+					}
+					return false;
+				});
 
-					currentRule.declarations = currentRule.declarations.filter(
-						(declaration: css.Declaration) =>
-							declaration.type === 'declaration' && getIsTheme(declaration.value, options.colors)
-					);
-					return currentRule.declarations.length > 0;
-				}
-			});
-		}
-	});
+				if ((rule as css.KeyFrames).keyframes.length === 0) rule = null;
+			} else if (rule.type === 'media') {
+				(rule as css.Media).rules = (rule as css.Media).rules.filter((rule) => {
+					if (rule.type === 'rule') {
+						const currentRule = rule as css.Rule;
+
+						currentRule.declarations = currentRule.declarations.filter(
+							(declaration: css.Declaration) =>
+								declaration.type === 'declaration' &&
+								getIsTheme(declaration.value, options.colors, matchColors)
+						);
+						return currentRule.declarations.length > 0;
+					}
+				});
+				if ((rule as css.Media).rules.length === 0) rule = null;
+			} else if (rule.type === 'comment' || rule.type === 'charset') {
+				return null;
+			}
+			return rule;
+		})
+		.filter((item) => !!item);
 
 	const childCompiler = this._compilation.createChildCompiler(`${PLUGIN_NAME} ${source}`);
 	childCompiler.hooks.thisCompilation.tap(`${PLUGIN_NAME} loader`, (compilation) => {
@@ -57,7 +72,7 @@ export default function pitch(source: string) {
 	});
 
 	const callback = this.async();
-	childCompiler.runAsChild((err, entries, compilation) => {
+	childCompiler.runAsChild(async (err, entries, compilation) => {
 		if (err) return callback(err);
 
 		if (compilation.errors.length > 0) {
@@ -70,23 +85,45 @@ export default function pitch(source: string) {
 			this.addContextDependency(dep);
 		}, this);
 
-		let callbackSource = options.only ? css.stringify(parseCssObject) : source;
+		const getCss = async () => {
+			if (!options.modules) return css.stringify(parseCssObject);
+			const pscc = await postcss([
+				require('postcss-modules')({
+					generateScopedName: options.localIdentName,
+					getJSON: () => {}
+				})
+			]).process(css.stringify(parseCssObject), { from: resourcePath });
+			return pscc.css;
+		};
 
-		this[PLUGIN_CALLBACK]({
+		let callbackSource = options.only ? await getCss() : source;
+
+		(this[PLUGIN_CALLBACK] as (cssItem: IcssItem) => any)({
 			source: callbackSource,
-			resourcePath,
+			fileName: resourcePath,
 			modules: options.modules,
-			localIdentName: options.localIdentName
+			localIdentName: options.localIdentName,
+			matchColors
 		});
 
-		let resultSource = options.only ? source + `\n/* extracted by ${PLUGIN_NAME}*/` : '';
+		let resultSource = options.only ? source : '';
 		return callback(null, resultSource);
 	});
 }
 
-function getIsTheme(declaration: string, colors: string[]) {
-	return colors.some((color) => declaration.includes(color));
+function getIsTheme(declaration: string, colors: string[], matchColors: string[]) {
+	let hasThemeColor = false;
+	colors.forEach((color) => {
+		if (declaration.includes(color)) {
+			hasThemeColor = true;
+			if (!matchColors.some((declaration) => declaration === color)) {
+				matchColors.push(color);
+			}
+		}
+	});
+	return hasThemeColor;
 }
+
 export interface IcssOptions {
 	colors: string[];
 	only: boolean;
@@ -96,7 +133,8 @@ export interface IcssOptions {
 
 export interface IcssItem {
 	source: string;
-	resourcePath: string;
+	fileName: string;
 	modules: boolean;
 	localIdentName?: string;
+	matchColors: string[];
 }

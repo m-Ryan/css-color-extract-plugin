@@ -1,19 +1,17 @@
 import { Compiler } from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
-import { IcssItem, IcssOptions } from './loader';
-import postcss from 'postcss';
+import { IcssItem } from './loader';
 export const PLUGIN_CALLBACK = 'css-color-extract-plugin-callback';
 export const PLUGIN_NAME = 'css-color-extract-plugin';
 
 export default class CssColorExtractPlugin {
 	private cacheDatas: CacheData[] = [];
-	private tempData: IcssItem[] = [];
 	private emitFile: IEmitFile;
 	private jsFileName: string = '';
 	private variableName: string = '';
 	static loader: string = require.resolve('./loader');
 
-	constructor(options?: IOptions) {
+	constructor(options: IOptions = {}) {
 		Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN' });
 		// 如果传入 fileName ，则写入js文件，否则写在body
 		if (options.fileName) {
@@ -24,49 +22,31 @@ export default class CssColorExtractPlugin {
 
 	apply(compiler: Compiler) {
 		const cacheDatas = this.cacheDatas;
-		const tempData = this.tempData;
 
 		compiler.hooks.thisCompilation.tap(PLUGIN_NAME, (compilation) => {
 			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (lc, m) => {
 				const loaderContext = lc;
-				this.emitFile = loaderContext.emitFile;
+				if (!this.emitFile) {
+					this.emitFile = loaderContext.emitFile;
+				}
+
 				loaderContext[PLUGIN_CALLBACK] = async (data: IcssItem) => {
-					const currentData = tempData.filter((item) => item.resourcePath === data.resourcePath)[0];
+					if (!data.source) return;
+					const cssData = data.source.replace(/\n/g, '');
 
+					const currentData = cacheDatas.filter((item) => item.fileName === data.fileName)[0];
 					if (currentData) {
-						currentData.source = data.source;
+						currentData.source = cssData;
 					} else {
-						tempData.push(data);
+						cacheDatas.push({
+							source: cssData,
+							fileName: data.fileName,
+							matchColors: data.matchColors
+						});
 					}
-					while (tempData.length > 0) {
-						const currentTemp = tempData.pop();
-						const boot = async () => {
-							const pscc = await postcss([
-								require('postcss-modules')({
-									generateScopedName: currentTemp.localIdentName,
-									getJSON: () => {}
-								})
-							]).process(currentTemp.source, { from: currentTemp.resourcePath });
-							return pscc.css;
-						};
-						const cssData = currentTemp.modules ? await boot() : currentTemp.source;
 
-						const currentData = cacheDatas.filter(
-							(item) => item.resourcePath === currentTemp.resourcePath
-						)[0];
-
-						if (currentData) {
-							currentData.data = cssData;
-						} else {
-							cacheDatas.push({
-								data: cssData,
-								resourcePath: currentTemp.resourcePath
-							});
-						}
-
-						if (this.jsFileName) {
-							this.emitFile(this.jsFileName, this.getJSContent());
-						}
+					if (this.jsFileName) {
+						this.emitFile(this.jsFileName, this.getJSContent());
 					}
 				};
 			});
@@ -138,11 +118,12 @@ interface IEmitFile {
 }
 
 interface IOptions {
-	fileName: string;
-	variableName: string;
+	fileName?: string;
+	variableName?: string;
 }
 
 interface CacheData {
-	data: string;
-	resourcePath: string;
+	source: string;
+	fileName: string;
+	matchColors: string[];
 }
