@@ -107,7 +107,7 @@ function pitch(source) {
             localIdentName: options.localIdentName,
             matchColors
         });
-        let resultSource = options.only ? source : '';
+        let resultSource = source;
         return callback(null, resultSource);
     }));
 }

@@ -1,4 +1,5 @@
 import { Compiler } from 'webpack';
+import { IcssItem } from './loader';
 export declare const PLUGIN_CALLBACK = "css-color-extract-plugin-callback";
 export declare const PLUGIN_NAME = "css-color-extract-plugin";
 export default class CssColorExtractPlugin {
@@ -8,6 +9,7 @@ export default class CssColorExtractPlugin {
     private variableName;
     static loader: string;
     constructor(options?: IOptions);
+    callback: (data: IcssItem) => void;
     apply(compiler: Compiler): void;
     getJSContent(): string;
 }

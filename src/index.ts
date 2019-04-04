@@ -1,6 +1,9 @@
 import { Compiler } from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { IcssItem } from './loader';
+import { writeFileSync, existsSync, mkdirSync } from 'fs';
+import path from 'path';
+
 export const PLUGIN_CALLBACK = 'css-color-extract-plugin-callback';
 export const PLUGIN_NAME = 'css-color-extract-plugin';
 
@@ -20,8 +23,30 @@ export default class CssColorExtractPlugin {
 		this.variableName = options.variableName;
 	}
 
-	apply(compiler: Compiler) {
+	callback = (data: IcssItem) => {
 		const cacheDatas = this.cacheDatas;
+		if (!data.source) return;
+		const cssData = data.source.replace(/\n/g, '');
+
+		const currentData = cacheDatas.filter((item) => item.fileName === data.fileName)[0];
+		if (currentData) {
+			currentData.source = cssData;
+		} else {
+			cacheDatas.push({
+				source: cssData,
+				fileName: data.fileName.replace(/(.*)\\(.*)/, '$2'), // 只要文件名
+				matchColors: data.matchColors
+			});
+		}
+
+		if (this.jsFileName) {
+			this.emitFile(this.jsFileName, this.getJSContent());
+		}
+	};
+
+	apply(compiler: Compiler) {
+		const options = compiler.options;
+		const buildPath = path.resolve(options.output.path, this.jsFileName);
 
 		compiler.hooks.thisCompilation.tap(PLUGIN_NAME, (compilation) => {
 			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (lc, m) => {
@@ -29,30 +54,17 @@ export default class CssColorExtractPlugin {
 				if (!this.emitFile) {
 					this.emitFile = loaderContext.emitFile;
 				}
-
-				loaderContext[PLUGIN_CALLBACK] = async (data: IcssItem) => {
-					if (!data.source) return;
-					const cssData = data.source.replace(/\n/g, '');
-
-					const currentData = cacheDatas.filter((item) => item.fileName === data.fileName)[0];
-					if (currentData) {
-						currentData.source = cssData;
-					} else {
-						cacheDatas.push({
-							source: cssData,
-							fileName: data.fileName.replace(/(.*)\\(.*)/, '$2'), // 只要文件名
-							matchColors: data.matchColors
-						});
-					}
-
-					if (this.jsFileName) {
-						this.emitFile(this.jsFileName, this.getJSContent());
-					}
-				};
+				loaderContext[PLUGIN_CALLBACK] = this.callback;
 			});
 		});
 
 		compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
+			compilation.hooks.normalModuleLoader.tapAsync(PLUGIN_NAME, (lc, m) => {
+				const loaderContext = lc;
+
+				loaderContext[PLUGIN_CALLBACK] = this.callback;
+			});
+
 			HtmlWebpackPlugin.getHooks(
 				compilation
 			).beforeAssetTagGeneration.tapAsync(PLUGIN_NAME, async (data: BeforeAssetTagGenerationHook, cb) => {
@@ -72,6 +84,9 @@ export default class CssColorExtractPlugin {
 						innerHTML: this.getJSContent()
 					});
 				}
+				await new Promise((resolve) =>
+					compiler.outputFileSystem.writeFile(buildPath, this.getJSContent(), resolve)
+				);
 				cb(null, data);
 			});
 		});
