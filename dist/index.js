@@ -47,7 +47,6 @@ class CssColorExtractPlugin {
         this.variableName = options.variableName;
     }
     apply(compiler) {
-        const cacheDatas = this.cacheDatas;
         const options = compiler.options;
         const buildPath = path_1.default.resolve(options.output.path, this.jsFileName);
         compiler.hooks.thisCompilation.tap(exports.PLUGIN_NAME, (compilation) => {
@@ -60,7 +59,7 @@ class CssColorExtractPlugin {
             });
         });
         compiler.hooks.compilation.tap(exports.PLUGIN_NAME, (compilation) => {
-            compilation.hooks.normalModuleLoader.tapAsync(exports.PLUGIN_NAME, (lc, m) => {
+            compilation.hooks.normalModuleLoader.tap(exports.PLUGIN_NAME, (lc, m) => {
                 const loaderContext = lc;
                 loaderContext[exports.PLUGIN_CALLBACK] = this.callback;
             });

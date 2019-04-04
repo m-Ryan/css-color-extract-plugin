@@ -59,7 +59,7 @@ export default class CssColorExtractPlugin {
 		});
 
 		compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
-			compilation.hooks.normalModuleLoader.tapAsync(PLUGIN_NAME, (lc, m) => {
+			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (lc, m) => {
 				const loaderContext = lc;
 
 				loaderContext[PLUGIN_CALLBACK] = this.callback;

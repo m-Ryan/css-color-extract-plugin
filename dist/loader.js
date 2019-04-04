@@ -107,8 +107,7 @@ function pitch(source) {
             localIdentName: options.localIdentName,
             matchColors
         });
-        let resultSource = source;
-        return callback(null, resultSource);
+        return callback(null, source);
     }));
 }
 exports.default = pitch;

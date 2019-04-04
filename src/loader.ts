@@ -107,8 +107,7 @@ export default function pitch(source: string) {
 			matchColors
 		});
 
-		let resultSource = source;
-		return callback(null, resultSource);
+		return callback(null, source);
 	});
 }
 
