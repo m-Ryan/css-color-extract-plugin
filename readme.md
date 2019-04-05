@@ -87,9 +87,6 @@ window.CSS_EXTRACT_COLOR_PLUGIN = [
   {"source":".src-App-module__example {  background: #1890ff;}","fileName":"App.module.scss","matchColors":["#1890ff"]},
   {"source":".src-Header-module__example {  color: #1890ff;}","fileName":"Header.module.scss","matchColors":["#1890ff"]}
 ];
-var styles = document.createElement('style');
-styles.innerHTML = window.CSS_EXTRACT_COLOR_PLUGIN.map((item) => item.source).join('');
-document.body.appendChild(styles);
 ```
 
 ### 接着只要使用简单的正则即可替换主题色
