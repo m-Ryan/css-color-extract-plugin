@@ -17,7 +17,7 @@
     "bfj": "6.1.1",
     "case-sensitive-paths-webpack-plugin": "2.2.0",
     "cd": "^0.3.3",
-    "css-color-extract-plugin": "^0.5.0",
+    "css-color-extract-plugin": "^0.5.2",
     "css-loader": "1.0.0",
     "dotenv": "6.0.0",
     "dotenv-expand": "4.2.0",

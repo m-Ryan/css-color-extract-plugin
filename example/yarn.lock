@@ -2746,9 +2746,9 @@ css-blank-pseudo@^0.1.4:
   dependencies:
     postcss "^7.0.5"
 
-css-color-extract-plugin@^0.5.0:
-  version "0.5.0"
-  resolved "https://registry.npmjs.org/css-color-extract-plugin/-/css-color-extract-plugin-0.5.0.tgz#2a39b8b805d81fe5eb3e73de90ab0a07377b0283"
+css-color-extract-plugin@^0.5.2:
+  version "0.5.2"
+  resolved "https://registry.npmjs.org/css-color-extract-plugin/-/css-color-extract-plugin-0.5.2.tgz#caa96a25a35a544dd5a8723dfcecd441c045e784"
   dependencies:
     "@types/css" "0.0.31"
     "@types/loader-utils" "^1.1.3"
