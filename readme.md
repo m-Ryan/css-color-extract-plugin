@@ -15,7 +15,7 @@ yarn add css-color-extract-plugin
 
 ```
 
-> - 改插件主要用于主题颜色
+> - 该插件主要用于提取主题颜色
 > - 提取到的css数据会挂载到window下
 > - 通过颜色替换再插入到<style>，可达到动态修改主题的目的
 
@@ -126,7 +126,7 @@ export default App;
 ## loader Options
 ```js
  {
-	colors: string[]; // 匹配的颜色数组，如果出现颜色层次错误覆盖的情况，需要选上被覆盖的颜色
+	colors: string[]; // 匹配的颜色数组，如果出现颜色层次错误覆盖的情况，需要选上被覆盖的颜色，可通过该选项在不同的文件提取不同的颜色
 	only?: boolean = true; // 仅提取选中颜色规则，否则会将整个文件提取进去
 	modules?: boolean = false; 
 	localIdentName?: string = '';
