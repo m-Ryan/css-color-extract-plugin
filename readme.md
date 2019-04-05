@@ -23,7 +23,6 @@ yarn add css-color-extract-plugin
 
 ![演示图](http://assets.maocanhua.cn/FgvARiyXVDzYELDVvVIB4L3WYxoX)
 
-
 Usage
 
 ---
