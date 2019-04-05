@@ -42,33 +42,33 @@ module.exports = {
             use: [
                 "style-loader", 
                 "css-loader", 
-                	{
-									loader: CssColorExtractPlugin.loader,
-									options: {
-										colors: [ PRIMARY_COLOR ]
-									}
-								},
-            ]
+                {
+                  loader: CssColorExtractPlugin.loader,
+                  options: {
+                    colors: [ PRIMARY_COLOR ]
+                  }
+              },
+           ]
         },
         {
             test:  /\.module\.css$/,
             use: [
                 "style-loader", 
-								{
-									loader: "css-loader", 
-									options: {
-                    modules: true,
-								    localIdentName: '[path][name]__[local]',
-									}
+                 {
+                   loader: "css-loader", 
+                   options: {
+                     modules: true,
+                     localIdentName: '[path][name]__[local]',
+                   }
 								},
-                	{
-									loader: CssColorExtractPlugin.loader,
-									options: {
+                {
+                    loader: CssColorExtractPlugin.loader,
+                    options: {
                     colors: [ PRIMARY_COLOR ],
                     modules: true,
-								    localIdentName: '[path][name]__[local]',
-									}
-								},
+                    localIdentName: '[path][name]__[local]',
+                  }
+               },
             ]
         }
       ]
