@@ -15,7 +15,7 @@ const css_1 = __importDefault(require("css"));
 const loader_utils_1 = __importDefault(require("loader-utils"));
 const postcss_1 = __importDefault(require("postcss"));
 const index_1 = require("./index");
-function pitch(source) {
+function loader(source) {
     const options = loader_utils_1.default.getOptions(this);
     if (typeof options.only === 'undefined')
         options.only = true;
@@ -110,7 +110,7 @@ function pitch(source) {
         return callback(null, source);
     }));
 }
-exports.default = pitch;
+exports.default = loader;
 function getIsTheme(declaration, colors, matchColors) {
     let hasThemeColor = false;
     colors.forEach((color) => {

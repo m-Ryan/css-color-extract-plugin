@@ -3,7 +3,7 @@ import loaderUtils from 'loader-utils';
 import postcss from 'postcss';
 import { PLUGIN_NAME, PLUGIN_CALLBACK } from './index';
 
-export default function pitch(source: string) {
+export default function loader(source: string) {
 	const options = loaderUtils.getOptions(this) as IcssOptions;
 	if (typeof options.only === 'undefined') options.only = true;
 	if (!(Array.isArray(options.colors) && options.colors.every((item) => typeof item === 'string'))) {

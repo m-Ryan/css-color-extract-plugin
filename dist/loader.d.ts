@@ -1,4 +1,4 @@
-export default function pitch(source: string): void;
+export default function loader(source: string): void;
 export interface IcssOptions {
     colors: string[];
     only: boolean;

@@ -81,10 +81,7 @@ class CssColorExtractPlugin {
         });
     }
     getJSContent() {
-        return `window.${this.variableName} = ${JSON.stringify(this.cacheDatas)};
-		var styles = document.createElement('style');
-		styles.innerHTML = window.${this.variableName}.map((item) => item.source).join('');
-		document.body.appendChild(styles);`;
+        return `window.${this.variableName} = ${JSON.stringify(this.cacheDatas)};`;
     }
 }
 CssColorExtractPlugin.loader = require.resolve('./loader');
