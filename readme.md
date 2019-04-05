@@ -85,7 +85,7 @@ module.exports = {
 ```js
 window.CSS_EXTRACT_COLOR_PLUGIN = [
   {"source":".src-App-module__example {  background: #1890ff;}","fileName":"App.module.scss","matchColors":["#1890ff"]},
-  {"source":".src-Header-module__example {  color: #1890ff;}","fileName":"Header.module.scss","matchColors":["#1890ff"]}
+  {"source":".src-controller-blog-components-Header-Header-module__theme {  color: #067785;}.src-controller-blog-components-Header-Header-module__pc_header {  background: #1890ff;}.src-controller-blog-components-Header-Header-module__mb_header {  background: #1890ff;}.src-controller-blog-components-Header-Header-module__mb_header .src-controller-blog-components-Header-Header-module__mb_nav {  background: #1890ff;}","fileName":"Header.module.scss","matchColors":["#1890ff"]}
 ];
 ```
 
