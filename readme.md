@@ -19,8 +19,10 @@ yarn add css-color-extract-plugin
 > - 提取到的css数据会挂载到window下
 > - 通过颜色替换再插入到<style>，可达到动态修改主题的目的
 
+---
 
 ![演示图](http://assets.maocanhua.cn/FgvARiyXVDzYELDVvVIB4L3WYxoX)
+
 
 Usage
 
@@ -53,7 +55,13 @@ module.exports = {
             test:  /\.module\.css$/,
             use: [
                 "style-loader", 
-                "css-loader", 
+								{
+									loader: "css-loader", 
+									options: {
+                    modules: true,
+								    localIdentName: '[path][name]__[local]',
+									}
+								},
                 	{
 									loader: CssColorExtractPlugin.loader,
 									options: {
@@ -143,4 +151,5 @@ export default App;
 
 ```
 **[example](https://github.com/m-Ryan/css-color-extract-plugin/tree/master/examples)**
-**[一个更复杂的例子](https://github.com/m-Ryan/RyanCMS/blob/master/fontend/config/webpack.config.js)**
+
+**[一个更复杂的例子-RyanCMS内容管理系统](https://github.com/m-Ryan/RyanCMS/blob/master/fontend/config/webpack.config.js)**
