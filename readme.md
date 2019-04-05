@@ -1,4 +1,4 @@
-# css-rules-replace-webpack-plugin
+# css-color-extract-plugin
 
 ---
 
@@ -14,6 +14,12 @@ npm install css-color-extract-plugin
 yarn add css-color-extract-plugin
 
 ```
+
+> - 改插件主要用于主题颜色
+> - 提取到的css数据会挂载到window下
+> - 通过颜色替换再插入到<style>，可达到动态修改主题的目的
+
+
 ![演示图](http://assets.maocanhua.cn/FgvARiyXVDzYELDVvVIB4L3WYxoX)
 
 Usage
