@@ -50,8 +50,7 @@ class CssColorExtractPlugin {
         const options = compiler.options;
         const buildPath = path_1.default.resolve(options.output.path, this.jsFileName);
         compiler.hooks.thisCompilation.tap(exports.PLUGIN_NAME, (compilation) => {
-            compilation.hooks.normalModuleLoader.tap(exports.PLUGIN_NAME, (lc, m) => {
-                const loaderContext = lc;
+            compilation.hooks.normalModuleLoader.tap(exports.PLUGIN_NAME, (loaderContext, m) => {
                 if (!this.emitFile) {
                     this.emitFile = loaderContext.emitFile;
                 }
@@ -59,8 +58,7 @@ class CssColorExtractPlugin {
             });
         });
         compiler.hooks.compilation.tap(exports.PLUGIN_NAME, (compilation) => {
-            compilation.hooks.normalModuleLoader.tap(exports.PLUGIN_NAME, (lc, m) => {
-                const loaderContext = lc;
+            compilation.hooks.normalModuleLoader.tap(exports.PLUGIN_NAME, (loaderContext, m) => {
                 loaderContext[exports.PLUGIN_CALLBACK] = this.callback;
             });
             html_webpack_plugin_1.default.getHooks(compilation).beforeAssetTagGeneration.tapAsync(exports.PLUGIN_NAME, (data, cb) => __awaiter(this, void 0, void 0, function* () {

@@ -1,7 +1,6 @@
 import { Compiler } from 'webpack';
 import HtmlWebpackPlugin from 'html-webpack-plugin';
 import { IcssItem } from './loader';
-import { writeFileSync, existsSync, mkdirSync } from 'fs';
 import path from 'path';
 
 export const PLUGIN_CALLBACK = 'css-color-extract-plugin-callback';
@@ -49,8 +48,7 @@ export default class CssColorExtractPlugin {
 		const buildPath = path.resolve(options.output.path, this.jsFileName);
 
 		compiler.hooks.thisCompilation.tap(PLUGIN_NAME, (compilation) => {
-			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (lc, m) => {
-				const loaderContext = lc;
+			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (loaderContext, m) => {
 				if (!this.emitFile) {
 					this.emitFile = loaderContext.emitFile;
 				}
@@ -59,9 +57,8 @@ export default class CssColorExtractPlugin {
 		});
 
 		compiler.hooks.compilation.tap(PLUGIN_NAME, (compilation) => {
-			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (lc, m) => {
-				const loaderContext = lc;
-
+			// 需要再次赋值的原因是 mini-css-extract-plugin 会影响到 thisCompilation 的赋值
+			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (loaderContext, m) => {
 				loaderContext[PLUGIN_CALLBACK] = this.callback;
 			});
 
