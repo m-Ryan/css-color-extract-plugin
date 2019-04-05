@@ -21,7 +21,7 @@ yarn add css-color-extract-plugin
 
 ---
 
-![演示图](http://assets.maocanhua.cn/FgvARiyXVDzYELDVvVIB4L3WYxoX)
+![演示图](./show.gif)
 
 Usage
 
@@ -76,7 +76,7 @@ module.exports = {
    ...
    	plugins: [
       ...
-			new CssColorExtractPlugin({ fileName: 'theme' }),
+      new CssColorExtractPlugin({ fileName: 'theme' }),
      ]
 };
 ```
