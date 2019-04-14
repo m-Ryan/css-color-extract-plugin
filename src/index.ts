@@ -10,6 +10,7 @@ export default class CssColorExtractPlugin {
 	private cacheDatas: CacheData[] = [];
 	private emitFile: IEmitFile;
 	private jsFileName: string = '';
+	private json: boolean = false;
 	private variableName: string = '';
 	static loader: string = require.resolve('./loader');
 
@@ -18,6 +19,12 @@ export default class CssColorExtractPlugin {
 		// 如果传入 fileName ，则写入js文件，否则写在body
 		if (options.fileName) {
 			this.jsFileName = options.fileName + '.js';
+		}
+		if (options.fileName) {
+			this.jsFileName = options.fileName + '.js';
+		}
+		if (options.json) {
+			this.json = options.json;
 		}
 		this.variableName = options.variableName;
 	}
@@ -46,6 +53,7 @@ export default class CssColorExtractPlugin {
 	apply(compiler: Compiler) {
 		const options = compiler.options;
 		const buildPath = path.resolve(options.output.path, this.jsFileName);
+		const buildJsonPath = path.resolve(options.output.path, this.jsFileName.replace(/\.js$/, '.json'));
 
 		compiler.hooks.thisCompilation.tap(PLUGIN_NAME, (compilation) => {
 			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (loaderContext, m) => {
@@ -81,9 +89,14 @@ export default class CssColorExtractPlugin {
 						innerHTML: this.getJSContent()
 					});
 				}
-				await new Promise((resolve) =>
-					compiler.outputFileSystem.writeFile(buildPath, this.getJSContent(), resolve)
-				);
+				const writeFile = (name: string, data: string) =>
+					new Promise((resolve) => compiler.outputFileSystem.writeFile(name, data, resolve));
+
+				await writeFile(buildPath, this.getJSContent());
+				if (this.json) {
+					await writeFile(buildJsonPath, this.getJSONContent());
+				}
+
 				cb(null, data);
 			});
 		});
@@ -91,6 +104,10 @@ export default class CssColorExtractPlugin {
 
 	getJSContent() {
 		return `window.${this.variableName} = ${JSON.stringify(this.cacheDatas)};`;
+	}
+
+	getJSONContent() {
+		return JSON.stringify(this.cacheDatas);
 	}
 }
 
@@ -129,6 +146,7 @@ interface IEmitFile {
 interface IOptions {
 	fileName?: string;
 	variableName?: string;
+	json?: boolean;
 }
 
 interface CacheData {

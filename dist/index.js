@@ -19,6 +19,7 @@ class CssColorExtractPlugin {
     constructor(options = {}) {
         this.cacheDatas = [];
         this.jsFileName = '';
+        this.json = false;
         this.variableName = '';
         this.callback = (data) => {
             const cacheDatas = this.cacheDatas;
@@ -44,11 +45,18 @@ class CssColorExtractPlugin {
         if (options.fileName) {
             this.jsFileName = options.fileName + '.js';
         }
+        if (options.fileName) {
+            this.jsFileName = options.fileName + '.js';
+        }
+        if (options.json) {
+            this.json = options.json;
+        }
         this.variableName = options.variableName;
     }
     apply(compiler) {
         const options = compiler.options;
         const buildPath = path_1.default.resolve(options.output.path, this.jsFileName);
+        const buildJsonPath = path_1.default.resolve(options.output.path, this.jsFileName.replace(/\.js$/, '.json'));
         compiler.hooks.thisCompilation.tap(exports.PLUGIN_NAME, (compilation) => {
             compilation.hooks.normalModuleLoader.tap(exports.PLUGIN_NAME, (loaderContext, m) => {
                 if (!this.emitFile) {
@@ -75,13 +83,20 @@ class CssColorExtractPlugin {
                         innerHTML: this.getJSContent()
                     });
                 }
-                yield new Promise((resolve) => compiler.outputFileSystem.writeFile(buildPath, this.getJSContent(), resolve));
+                const writeFile = (name, data) => new Promise((resolve) => compiler.outputFileSystem.writeFile(name, data, resolve));
+                yield writeFile(buildPath, this.getJSContent());
+                if (this.json) {
+                    yield writeFile(buildJsonPath, this.getJSONContent());
+                }
                 cb(null, data);
             }));
         });
     }
     getJSContent() {
         return `window.${this.variableName} = ${JSON.stringify(this.cacheDatas)};`;
+    }
+    getJSONContent() {
+        return JSON.stringify(this.cacheDatas);
     }
 }
 CssColorExtractPlugin.loader = require.resolve('./loader');

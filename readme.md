@@ -21,7 +21,7 @@ yarn add css-color-extract-plugin
 
 ---
 
-![演示图](./show.gif)
+![演示图](http://assets.maocanhua.cn/FgvARiyXVDzYELDVvVIB4L3WYxoX)
 
 Usage
 
@@ -141,7 +141,8 @@ export default App;
 ## plugin Options
 ```js
   {
-		fileName?: string; // 提取颜色的文件名,不提供则直接嵌在 script标签中
+    fileName?: string; // 提取颜色的文件名,不提供则直接嵌在 script标签中
+    json?: boolean = false; // 提起到json
 	  variableName?: string = 'CSS_EXTRACT_COLOR_PLUGIN'; // 挂载到window的变量名， 默认 CSS_EXTRACT_COLOR_PLUGIN
 }
 
