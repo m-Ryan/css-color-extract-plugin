@@ -19,7 +19,9 @@ class CssColorExtractPlugin {
     constructor(options = {}) {
         this.cacheDatas = [];
         this.jsFileName = '';
+        this.jsonFileName = '';
         this.json = false;
+        this.injectToWindow = true;
         this.variableName = '';
         this.callback = (data) => {
             const cacheDatas = this.cacheDatas;
@@ -40,23 +42,27 @@ class CssColorExtractPlugin {
             if (this.jsFileName) {
                 this.emitFile(this.jsFileName, this.getJSContent());
             }
+            if (this.jsonFileName) {
+                this.emitFile(this.jsonFileName, this.getJSONContent());
+            }
         };
-        Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN' });
-        if (options.fileName) {
-            this.jsFileName = options.fileName + '.js';
-        }
+        Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN', injectToWindow: true });
         if (options.fileName) {
             this.jsFileName = options.fileName + '.js';
         }
         if (options.json) {
             this.json = options.json;
+            this.jsonFileName = this.jsFileName.replace(/\.js$/, '.json');
+        }
+        if (typeof options.injectToWindow !== undefined) {
+            this.injectToWindow = !!options.injectToWindow;
         }
         this.variableName = options.variableName;
     }
     apply(compiler) {
         const options = compiler.options;
         const buildPath = path_1.default.resolve(options.output.path, this.jsFileName);
-        const buildJsonPath = path_1.default.resolve(options.output.path, this.jsFileName.replace(/\.js$/, '.json'));
+        const buildJsonPath = path_1.default.resolve(options.output.path, this.jsonFileName);
         compiler.hooks.thisCompilation.tap(exports.PLUGIN_NAME, (compilation) => {
             compilation.hooks.normalModuleLoader.tap(exports.PLUGIN_NAME, (loaderContext, m) => {
                 if (!this.emitFile) {
@@ -76,15 +82,19 @@ class CssColorExtractPlugin {
                 cb(null, data);
             }));
             html_webpack_plugin_1.default.getHooks(compilation).afterTemplateExecution.tapAsync(exports.PLUGIN_NAME, (data, cb) => __awaiter(this, void 0, void 0, function* () {
-                if (!this.jsFileName) {
-                    data.bodyTags.unshift({
-                        tagName: 'script',
-                        closeTag: true,
-                        innerHTML: this.getJSContent()
-                    });
-                }
                 const writeFile = (name, data) => new Promise((resolve) => compiler.outputFileSystem.writeFile(name, data, resolve));
-                yield writeFile(buildPath, this.getJSContent());
+                if (this.injectToWindow) {
+                    if (!this.jsFileName) {
+                        data.bodyTags.unshift({
+                            tagName: 'script',
+                            closeTag: true,
+                            innerHTML: this.getJSContent()
+                        });
+                    }
+                    else {
+                        yield writeFile(buildPath, this.getJSContent());
+                    }
+                }
                 if (this.json) {
                     yield writeFile(buildJsonPath, this.getJSONContent());
                 }

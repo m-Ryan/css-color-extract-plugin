@@ -10,21 +10,24 @@ export default class CssColorExtractPlugin {
 	private cacheDatas: CacheData[] = [];
 	private emitFile: IEmitFile;
 	private jsFileName: string = '';
+	private jsonFileName: string = '';
 	private json: boolean = false;
+	private injectToWindow: boolean = true;
 	private variableName: string = '';
 	static loader: string = require.resolve('./loader');
 
 	constructor(options: IOptions = {}) {
-		Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN' });
+		Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN', injectToWindow: true });
 		// 如果传入 fileName ，则写入js文件，否则写在body
-		if (options.fileName) {
-			this.jsFileName = options.fileName + '.js';
-		}
 		if (options.fileName) {
 			this.jsFileName = options.fileName + '.js';
 		}
 		if (options.json) {
 			this.json = options.json;
+			this.jsonFileName = this.jsFileName.replace(/\.js$/, '.json');
+		}
+		if (typeof options.injectToWindow !== undefined) {
+			this.injectToWindow = !!options.injectToWindow;
 		}
 		this.variableName = options.variableName;
 	}
@@ -48,12 +51,16 @@ export default class CssColorExtractPlugin {
 		if (this.jsFileName) {
 			this.emitFile(this.jsFileName, this.getJSContent());
 		}
+
+		if (this.jsonFileName) {
+			this.emitFile(this.jsonFileName, this.getJSONContent());
+		}
 	};
 
 	apply(compiler: Compiler) {
 		const options = compiler.options;
 		const buildPath = path.resolve(options.output.path, this.jsFileName);
-		const buildJsonPath = path.resolve(options.output.path, this.jsFileName.replace(/\.js$/, '.json'));
+		const buildJsonPath = path.resolve(options.output.path, this.jsonFileName);
 
 		compiler.hooks.thisCompilation.tap(PLUGIN_NAME, (compilation) => {
 			compilation.hooks.normalModuleLoader.tap(PLUGIN_NAME, (loaderContext, m) => {
@@ -82,17 +89,22 @@ export default class CssColorExtractPlugin {
 			HtmlWebpackPlugin.getHooks(
 				compilation
 			).afterTemplateExecution.tapAsync(PLUGIN_NAME, async (data: AfterTemplateExecutionHook, cb) => {
-				if (!this.jsFileName) {
-					data.bodyTags.unshift({
-						tagName: 'script',
-						closeTag: true,
-						innerHTML: this.getJSContent()
-					});
-				}
 				const writeFile = (name: string, data: string) =>
 					new Promise((resolve) => compiler.outputFileSystem.writeFile(name, data, resolve));
 
-				await writeFile(buildPath, this.getJSContent());
+				if (this.injectToWindow) {
+					if (!this.jsFileName) {
+						data.bodyTags.unshift({
+							tagName: 'script',
+							closeTag: true,
+							innerHTML: this.getJSContent()
+						});
+					} else {
+						await writeFile(buildPath, this.getJSContent());
+					}
+
+				}
+
 				if (this.json) {
 					await writeFile(buildJsonPath, this.getJSONContent());
 				}
@@ -147,6 +159,7 @@ interface IOptions {
 	fileName?: string;
 	variableName?: string;
 	json?: boolean;
+	injectToWindow?: boolean;
 }
 
 interface CacheData {

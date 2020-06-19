@@ -6,7 +6,9 @@ export default class CssColorExtractPlugin {
     private cacheDatas;
     private emitFile;
     private jsFileName;
+    private jsonFileName;
     private json;
+    private injectToWindow;
     private variableName;
     static loader: string;
     constructor(options?: IOptions);
@@ -19,5 +21,6 @@ interface IOptions {
     fileName?: string;
     variableName?: string;
     json?: boolean;
+    injectToWindow?: boolean;
 }
 export {};
