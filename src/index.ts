@@ -17,7 +17,7 @@ export default class CssColorExtractPlugin {
 	static loader: string = require.resolve('./loader');
 
 	constructor(options: IOptions = {}) {
-		Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN', injectToWindow: true });
+		Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN' });
 		// 如果传入 fileName ，则写入js文件，否则写在body
 		if (options.fileName) {
 			this.jsFileName = options.fileName + '.js';
@@ -80,7 +80,7 @@ export default class CssColorExtractPlugin {
 			HtmlWebpackPlugin.getHooks(
 				compilation
 			).beforeAssetTagGeneration.tapAsync(PLUGIN_NAME, async (data: BeforeAssetTagGenerationHook, cb) => {
-				if (this.jsFileName) {
+				if (this.injectToWindow && this.jsFileName) {
 					data.assets.js.unshift(data.assets.publicPath + this.jsFileName);
 				}
 				cb(null, data);

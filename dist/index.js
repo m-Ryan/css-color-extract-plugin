@@ -46,7 +46,7 @@ class CssColorExtractPlugin {
                 this.emitFile(this.jsonFileName, this.getJSONContent());
             }
         };
-        Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN', injectToWindow: true });
+        Object.assign(options, { variableName: 'CSS_EXTRACT_COLOR_PLUGIN' });
         if (options.fileName) {
             this.jsFileName = options.fileName + '.js';
         }
@@ -76,7 +76,7 @@ class CssColorExtractPlugin {
                 loaderContext[exports.PLUGIN_CALLBACK] = this.callback;
             });
             html_webpack_plugin_1.default.getHooks(compilation).beforeAssetTagGeneration.tapAsync(exports.PLUGIN_NAME, (data, cb) => __awaiter(this, void 0, void 0, function* () {
-                if (this.jsFileName) {
+                if (this.injectToWindow && this.jsFileName) {
                     data.assets.js.unshift(data.assets.publicPath + this.jsFileName);
                 }
                 cb(null, data);
