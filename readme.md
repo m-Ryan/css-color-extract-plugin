@@ -149,4 +149,4 @@ export default App;
 ```
 **[example](https://github.com/m-Ryan/css-color-extract-plugin/tree/master/examples)**
 
-**[一个更复杂的例子-RyanCMS内容管理系统](https://github.com/m-Ryan/RyanCMS/blob/master/fontend/config/webpack.config.js)**
+**[一个更复杂的例子-RyanCMS内容管理系统](https://github.com/m-Ryan/RyanCMS)**
